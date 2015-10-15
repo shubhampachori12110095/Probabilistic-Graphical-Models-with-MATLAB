@@ -40,6 +40,9 @@ for i = 1:size(E, 1),
             %       and SetValueOfAssignment
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
+            assignments = IndexToAssignment(1:length(F(j).val), F(j).card);
+            F(j).val(assignments(:,indx) ~= x) = 0;
+            
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 				% Check validity of evidence / resulting factor

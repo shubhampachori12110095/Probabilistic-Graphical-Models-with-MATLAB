@@ -38,6 +38,10 @@ indxB = AssignmentToIndex(assignments(:, mapB), B.card);
 % YOUR CODE HERE
 % Correctly populate the factor values of B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+
+for i = 1:length(B.val)
+    B.val(i) = sum(A.val(i == indxB));
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
