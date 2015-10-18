@@ -38,6 +38,8 @@ numAlleles = length(alleleFreqs);
 % mapping using generateAlleleGenotypeMappers(numAlleles). (A genotype 
 % consists of 2 alleles.)
 
+% elleles   : [A, a]
+% genotypes : [AA, Aa, aa]
 [allelesToGenotypes, genotypesToAlleles] = generateAlleleGenotypeMappers(numAlleles);
 
 % One or both of these matrices might be useful.
@@ -58,8 +60,15 @@ numAlleles = length(alleleFreqs);
 
 % Fill in genotypeFactor.var.  This should be a 1-D row vector.
 % Fill in genotypeFactor.card.  This should be a 1-D row vector.
+genotypeFactor.var = genotypeVar;
+genotypeFactor.card = size(genotypesToAlleles,1);
 
 genotypeFactor.val = zeros(1, prod(genotypeFactor.card));
 % Replace the zeros in genotypeFactor.val with the correct values.
+
+for i = 1:genotypeFactor.card
+	k = genotypesToAlleles(i,:);
+	genotypeFactor.val(i) = nchoosek(numAlleles,i-1) * prod(alleleFreqs(k));
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  

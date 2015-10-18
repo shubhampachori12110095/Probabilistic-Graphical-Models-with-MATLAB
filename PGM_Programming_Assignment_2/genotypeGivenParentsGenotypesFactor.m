@@ -58,8 +58,27 @@ genotypeFactor = struct('var', [], 'card', [], 'val', []);
 
 % Fill in genotypeFactor.var.  This should be a 1-D row vector.
 % Fill in genotypeFactor.card.  This should be a 1-D row vector.
+genotypeFactor.var = [genotypeVarChild, genotypeVarParentOne, genotypeVarParentTwo];
+m = size(genotypesToAlleles, 1);
+genotypeFactor.card = [m, m, m];
 
 genotypeFactor.val = zeros(1, prod(genotypeFactor.card));
 % Replace the zeros in genotypeFactor.val with the correct values.
+
+parentsGenotypeCombination = zeros(4,2);
+for i = 1:length(genotypeFactor.val)
+    genotypes = IndexToAssignment(i, genotypeFactor.card); % genotypes = [child, parentOne, parentTwo]
+    elleles = genotypesToAlleles(genotypes,:); % elleles = [child; parentOne; parentTwo]
+    parentsGenotypeCombination(1,:) = [elleles(2,1), elleles(3,1)];
+    parentsGenotypeCombination(2,:) = [elleles(2,2), elleles(3,1)];
+    parentsGenotypeCombination(3,:) = [elleles(2,1), elleles(3,2)];
+    parentsGenotypeCombination(4,:) = [elleles(2,2), elleles(3,2)];
+    for j = 1:4
+        if sum(parentsGenotypeCombination(j,:) == 1) == sum(elleles(1,:) == 1)
+            genotypeFactor.val(i) = genotypeFactor.val(i) + 1;
+        end
+    end
+end
+genotypeFactor.val = genotypeFactor.val / 4;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
