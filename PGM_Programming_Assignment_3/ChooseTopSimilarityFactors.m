@@ -23,7 +23,14 @@ if (length(allFactors) <= F)
 end
 
 % Your code here:
-factors = allFactors; %%% REMOVE THIS LINE
+% factors = allFactors; %%% REMOVE THIS LINE
+len = length(allFactors);
+similarities = zeros(1, len);
+for i = 1:len
+    similarities(i) = allFactors(i).val(1);
+end
+[values, idices] = sort(similarities, 'descend');
+factors = allFactors(idices(1:F));
 
 end
 
