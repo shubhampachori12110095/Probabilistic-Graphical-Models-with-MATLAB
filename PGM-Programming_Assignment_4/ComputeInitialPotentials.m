@@ -40,6 +40,40 @@ P.edges = zeros(N);
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+for i = 1:N
+    P.cliqueList(i).var = C.nodes{i};
+end
+P.edges = C.edges;
+
+% Assign a factor to a clique
+factorToClique = zeros(length(C.factorList), 1);
+for i = 1:length(C.factorList)
+    for j = 1:N
+        aFactor = C.factorList(i).var;
+        aClique = C.nodes{j};
+        if all(ismember(aFactor, aClique))
+            factorToClique(i) = j;
+            break;
+        end
+    end
+end
+
+% Compute the initial potentials
+for i = 1:N
+    fIndices = find(factorToClique == i);
+    prodFactor = C.factorList(fIndices(1));
+    for j = 2:length(fIndices)
+        prodFactor = FactorProduct(prodFactor, C.factorList(fIndices(j)));
+    end
+    
+    [V, I] = sort(prodFactor.var);
+    out.card = prodFactor.card(I);
+    allAssignmentsIn = IndexToAssignment(1:prod(prodFactor.card), prodFactor.card);
+    allAssignmentsOut = allAssignmentsIn(:,I);
+    out.val(AssignmentToIndex(allAssignmentsOut, out.card)) = prodFactor.val;
+    P.cliqueList(i).card = prodFactor.card(I);
+    P.cliqueList(i).val = out.val;
+end
 
 end
 

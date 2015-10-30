@@ -34,6 +34,35 @@ j = 0;
 % YOUR CODE HERE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+eligible = 0;
+for i = 1:size(P.edges,1)
+    for j = 1:size(P.edges,1)
+        if P.edges(i,j) == 0 || ~isempty(messages(i,j).var)
+            continue;
+        end
+        
+        neighbors = setdiff(find(P.edges(i,:) == 1), j);
+        count = 0;
+        numNeighbors = length(neighbors);
+        for k = 1:numNeighbors
+            if isempty(messages(neighbors(k), i).var)
+                break;
+            end
+            count = count + 1;
+        end
+        if count == numNeighbors
+            eligible = 1;
+            break;
+        end
+    end
+    if eligible == 1
+        break;
+    end
+end
 
+if eligible == 0
+    i = 0;
+    j = 0;
+end
 
 return;

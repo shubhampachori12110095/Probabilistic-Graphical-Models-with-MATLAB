@@ -36,7 +36,40 @@ MESSAGES = repmat(struct('var', [], 'card', [], 'val', []), N, N);
 % Remember that you only need an upward pass and a downward pass.
 %
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+if isMax
+    for i = 1:length(P.cliqueList)
+        P.cliqueList(i).val = log(P.cliqueList(i).val);
+    end
+end
 
+[i, j] = GetNextCliques(P, MESSAGES);
+while i ~= 0 || j ~= 0
+    from = P.cliqueList(i).var;
+    to = P.cliqueList(j).var;
+    diff = setdiff(from,to);
+    neighbors = find(P.edges(i,:) == 1);
+    
+    F = P.cliqueList(i);
+    for f = 1:length(neighbors)
+        if neighbors(f) ~= j && ~isempty(MESSAGES(neighbors(f),i).var)
+            if isMax
+                F = FactorSum(F, MESSAGES(neighbors(f),i));
+            else
+                F = FactorProduct(F, MESSAGES(neighbors(f),i));
+            end
+        end
+    end
+    
+    if(isMax)
+        MESSAGES(i,j) = FactorMaxMarginalization(F, diff);
+    else
+        MESSAGES(i,j) = FactorMarginalization(F, diff);
+        MESSAGES(i,j).val = MESSAGES(i,j).val ./ sum(MESSAGES(i,j).val(:));
+    end
+    
+    [i, j] = GetNextCliques(P, MESSAGES);
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
@@ -45,6 +78,18 @@ MESSAGES = repmat(struct('var', [], 'card', [], 'val', []), N, N);
 % Compute the final potentials for the cliques and place them in P.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+for i = 1:N
+    neighbors = find(P.edges(i,:) == 1);
+    F = P.cliqueList(i);
+    for j = 1:length(neighbors)
+        M = MESSAGES(neighbors(j), i);
+        if isMax
+            F = FactorSum(F, M);
+        else
+            F = FactorProduct(F, M);
+        end
+    end
+    P.cliqueList(i) = F;
+end
 
 return

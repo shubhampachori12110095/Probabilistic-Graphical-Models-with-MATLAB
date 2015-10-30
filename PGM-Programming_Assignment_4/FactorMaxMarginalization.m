@@ -37,13 +37,20 @@ end;
 
 % initialization
 % you should set them to the correct values in your code
-B.card = [];
-B.val = [];
+B.card = A.card(mapB);
+B.val = ones(1, prod(B.card)) .* (-Inf);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
 % Correctly set up and populate the factor values of B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+assignments = IndexToAssignment(1:prod(A.card), A.card);
+indicesB = AssignmentToIndex(assignments(:,mapB), B.card);
+
+for i = 1:length(A.val)
+    B.val(indicesB(i)) = max(B.val(indicesB(i)), A.val(i));
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
