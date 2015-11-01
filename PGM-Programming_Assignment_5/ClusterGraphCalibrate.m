@@ -46,6 +46,9 @@ for m = 1:length(edgeFromIndx),
     % be useful here (for making your code faster)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    [MESSAGES(i,j).var, ids] = intersect(P.clusterList(i).var, P.clusterList(j).var);
+    MESSAGES(i,j).card = P.clusterList(i).card(ids);
+    MESSAGES(i,j).val = ones(1,prod(MESSAGES(i,j).card));
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end;
@@ -74,7 +77,18 @@ while (1),
     % obtain some speedup in this function
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-
+    neighbors = find(P.edges(i,:) == 1);
+    F = P.clusterList(i);
+    for f = 1:length(neighbors)
+        if neighbors(f) ~= j
+            F = FactorProduct(F, MESSAGES(neighbors(f),i));
+        end
+    end
+    
+    diff = setdiff(P.clusterList(i).var, P.clusterList(j).var);
+    MESSAGES(i,j) = FactorMarginalization(F, diff);
+    MESSAGES(i,j).val(:) = MESSAGES(i,j).val ./ sum(MESSAGES(i,j).val);
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if(useSmartMP==1)

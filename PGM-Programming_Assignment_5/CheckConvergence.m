@@ -14,7 +14,7 @@
 %
 % Copyright (C) Daphne Koller, Stanford University, 2012
 
-function converged = CheckConvergence(mNew, mOld);
+function converged = CheckConvergence(mNew, mOld)
 converged = true;
 thresh = 1.0e-6;
 %converged should be 1 if converged, 0 otherwise.
@@ -24,7 +24,17 @@ thresh = 1.0e-6;
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+[numRows, numCols] = size(mNew);
+for i = 1:numRows
+    for j = 1:numCols
+        for k = 1:length(mNew(i,j).val)
+            if abs(mNew(i,j).val(k) - mOld(i,j).val(k)) > thresh
+                converged = false;
+                return;
+            end
+        end
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

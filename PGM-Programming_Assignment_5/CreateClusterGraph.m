@@ -34,7 +34,19 @@ end;
 % 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+for i = 1:length(F)
+    P.clusterList(i).var = F(i).var;
+    P.clusterList(i).card = F(i).card;
+    P.clusterList(i).val = F(i).val;
+    if length(F(i).var) == 1
+        continue;
+    end
+    vars = F(i).var;
+    for j = 1:length(vars)
+        P.edges(i,vars(j)) = 1;
+        P.edges(vars(j),i) = 1;
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
