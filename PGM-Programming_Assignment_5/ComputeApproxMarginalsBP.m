@@ -64,7 +64,7 @@ function indx = FindPotentialWithVariable(P, V)
 
 indx = 0;
 for i = 1:length(P.clusterList),
-    if (any(P.clusterList(mode(i).var == V)),
+    if (any(P.clusterList(i).var == V),
         indx = i;
         return;
     end;
