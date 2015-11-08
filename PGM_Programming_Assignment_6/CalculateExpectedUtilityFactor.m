@@ -17,7 +17,14 @@ function EUF = CalculateExpectedUtilityFactor( I )
   % YOUR CODE HERE...
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
-
-
+ 
+  F = [I.RandomFactors I.UtilityFactors];
+  diff = setdiff([F(:).var], I.DecisionFactors.var);
+  Fnew = VariableElimination(F, diff);
+  F = Fnew(1);
+  for i = 2:length(Fnew)
+      F = FactorProduct(F, Fnew(i));
+  end
+  EUF = FactorMarginalization(F, diff);
   
 end  
