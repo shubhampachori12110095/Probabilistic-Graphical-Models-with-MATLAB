@@ -61,5 +61,97 @@ function [nll, grad] = InstanceNegLogLikelihood(X, y, theta, modelParams)
     %%%
     % Your code here:
     
+    %Initialise empty factors
+    n = length(y);
+    for i=1:n-1
+        F(i) = EmptyFactorStruct();
+        F(i).var = i;
+        F(i).card = 26;
+        F(i).val = zeros(1,26);
 
+        FF(i) = EmptyFactorStruct();
+        FF(i).var = [i, i+1];
+        FF(i).card = [26, 26];
+        FF(i).val = zeros(1,26*26);
+    end;
+    F(n) = EmptyFactorStruct();
+    F(n).var = n;
+    F(n).card = [26];
+    F(n).val = zeros(1,26);
+
+    allFactors = [F, FF];
+
+    %Populate the factor values
+
+    %Loop over each factor
+    featureCounts = zeros(size(theta));
+    for f = 1:length(allFactors)
+        factorVar = allFactors(f).var;
+        for i=1:length(featureSet.features)
+            %Find the factor that has the same scope as the factor
+            if(length(factorVar) ~= length(featureSet.features(i).var))
+                continue;
+            end;
+            if all(sort(factorVar) == sort(featureSet.features(i).var))
+                if(all(y(featureSet.features(i).var) == featureSet.features(i).assignment))
+                    featureCounts(featureSet.features(i).paramIdx) = featureCounts(featureSet.features(i).paramIdx) + 1;
+                end;
+                map = [];
+                for j = 1:length(factorVar)
+                    map(j) = find(factorVar == featureSet.features(i).var(j));
+                end;
+                idx = AssignmentToIndex(featureSet.features(i).assignment(map), allFactors(f).card);
+                allFactors(f).val(idx) = allFactors(f).val(idx) + theta(featureSet.features(i).paramIdx);
+            end;
+        end;
+    end;
+
+    for i=1:length(allFactors)
+        allFactors(i).val = exp(allFactors(i).val);
+    end;
+
+    P = CreateCliqueTree(allFactors);
+    [P, logZ] = CliqueTreeCalibrate(P,0);
+    reg =  sum(theta.^2)*(modelParams.lambda/2);
+    weightedFeatureCounts = (theta.*featureCounts);
+    nll = logZ-sum(weightedFeatureCounts)+reg;
+
+
+    % Calculate normalized probability distributions
+    for f=1:length(allFactors)
+        for i=1:length(P.cliqueList)
+            if(length(intersect(P.cliqueList(i).var, allFactors(f).var)) == length(allFactors(f).var))
+                if(all(intersect(P.cliqueList(i).var, allFactors(f).var) == allFactors(f).var))
+                    V = setdiff(P.cliqueList(i).var, allFactors(f).var);
+                    allFactors(f) = FactorMarginalization(P.cliqueList(i), V);
+                    allFactors(f).val = allFactors(f).val./sum(allFactors(f).val);
+                    break;
+                end;
+            end;
+        end;
+    end;
+    modelFeatureCounts = zeros(size(theta));
+
+    for i=1:length(featureSet.features)
+        %Find the factor that has the same scope as the factor
+        for f = 1:length(allFactors)
+            factorVar = allFactors(f).var;
+            if(length(factorVar) ~= length(featureSet.features(i).var))
+                continue;
+            end;
+            if all(sort(factorVar) == sort(featureSet.features(i).var))
+                map = [];
+                for j = 1:length(factorVar)
+                    map(j) = find(factorVar == featureSet.features(i).var(j));
+                end;
+                idx = AssignmentToIndex(featureSet.features(i).assignment, allFactors(f).card);
+                modelFeatureCounts(featureSet.features(i).paramIdx) = modelFeatureCounts(featureSet.features(i).paramIdx) + allFactors(f).val(idx);
+                break;
+            end;
+        end;
+    end;
+
+    regTheta = modelParams.lambda*theta;
+    grad = modelFeatureCounts - featureCounts + regTheta;
+    
 end
