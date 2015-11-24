@@ -26,6 +26,16 @@ sigma = 1;
 % construct A
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
+
+A = [U,ones(M,1)];
+A = repmat(A,1,N+1);
+mult = ones(M,N+1);
+for i = 1:N
+	mult = [mult,repmat(U(:,i),1,4)];
+end
+A = A.*mult;
+A = mean(A);
+A = reshape(A,N+1,N+1)';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -34,14 +44,29 @@ sigma = 1;
 % construct B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
+
+B = repmat(X,1,N+1);
+B = B.*[ones(M,1),U];
+B = mean(B)';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % solve A*Beta = B
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
+
+Beta = A\B;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % then compute sigma according to eq. (11) in PA description
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % YOUR CODE HERE
+
+sigma = cov(X,1);
+temp = 0;
+for i = 1:N
+	for j = 1:N
+		temp = temp + Beta(i)*Beta(j)*cov(U(:,i),U(:,j),1);
+	end
+end
+sigma = sqrt(sigma - temp);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
