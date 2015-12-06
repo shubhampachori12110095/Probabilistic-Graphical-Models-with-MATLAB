@@ -50,7 +50,26 @@ for iter=1:maxIter
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % YOUR CODE HERE
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+  P.c = sum(ClassProb)/N;
+  for i = 1:10
+	  if G(i,1) == 1
+		  % do shit
+		  for j = 1:K
+			  [Betay,P.clg(i).sigma_y(j)] = FitLG(poseData(:,i,1),reshape(poseData(:,G(i,2),:),N,3),ClassProb(:,j));
+			  [Betax,P.clg(i).sigma_x(j)] = FitLG(poseData(:,i,2),reshape(poseData(:,G(i,2),:),N,3),ClassProb(:,j));
+			  [Betaangle,P.clg(i).sigma_angle(j)] = FitLG(poseData(:,i,3),reshape(poseData(:,G(i,2),:),N,3),ClassProb(:,j));
+			  P.clg(i).theta(j,:) = [Betay(4),Betay(1:3)',Betax(4),Betax(1:3)',Betaangle(4),Betaangle(1:3)'];
+
+		  end
+	  else
+		  % do shit
+		  for j = 1:K
+			  [P.clg(i).mu_y(j),P.clg(i).sigma_y(j)] = FitG(poseData(:,i,1),ClassProb(:,j));
+			  [P.clg(i).mu_x(j),P.clg(i).sigma_x(j)] = FitG(poseData(:,i,2),ClassProb(:,j));
+			  [P.clg(i).mu_angle(j),P.clg(i).sigma_angle(j)] = FitG(poseData(:,i,3),ClassProb(:,j));
+		  end
+	  end
+  end
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % E-STEP to re-estimate ClassProb using the new parameters
@@ -74,7 +93,32 @@ for iter=1:maxIter
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % YOUR CODE HERE
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+  for i = 1:N
+	  data = reshape(poseData(i,:,:),10,3);
+	  ClassProb(i,:) = log(P.c);
+	  for j = 1:10
+		  if G(j,1) == 1
+			  parent = data(G(j,2),:);
+			  for k = 1:K
+				  theta = P.clg(j).theta(k,:);
+				  mu_y = sum(theta(1:4).*[1,parent]);
+				  mu_x = sum(theta(5:8).*[1,parent]);
+				  mu_a = sum(theta(9:12).*[1,parent]);
+				  ClassProb(i,k) = ClassProb(i,k) + ...
+                                   lognormpdf(data(j,1),mu_y,P.clg(j).sigma_y(k)) + ...
+                                   lognormpdf(data(j,2),mu_x,P.clg(j).sigma_x(k)) + ...
+                                   lognormpdf(data(j,3),mu_a,P.clg(j).sigma_angle(k));
+			  end
+		  else
+			  for k = 1:K
+				  ClassProb(i,k) = ClassProb(i,k) + ...
+                                   lognormpdf(data(j,1),P.clg(j).mu_y(k),P.clg(j).sigma_y(k)) + ...
+                                   lognormpdf(data(j,2),P.clg(j).mu_x(k),P.clg(j).sigma_x(k)) + ...
+                                   lognormpdf(data(j,3),P.clg(j).mu_angle(k),P.clg(j).sigma_angle(k));
+			  end
+		  end
+	  end
+  end
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % Compute log likelihood of dataset for this iteration
@@ -83,7 +127,9 @@ for iter=1:maxIter
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % YOUR CODE HERE
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+  lse = logsumexp(ClassProb);
+  loglikelihood(iter) = sum(lse);
+  ClassProb = exp(ClassProb-repmat(lse,1,K));
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % Print out loglikelihood
